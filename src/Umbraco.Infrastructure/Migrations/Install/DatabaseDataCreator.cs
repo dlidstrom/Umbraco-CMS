@@ -1749,9 +1749,10 @@ internal class DatabaseDataCreator
         ConditionalInsert(
             Constants.Configuration.NamedOptions.InstallDefaultData.Languages,
             "en-us",
-            new LanguageDto { Id = 1, IsoCode = "en-US", CultureName = "English (United States)", IsDefault = true },
+            new LanguageDto { IsoCode = "en-US", CultureName = "English (United States)", IsDefault = true },
             Constants.DatabaseSchema.Tables.Language,
-            "id");
+            "id",
+            true);
 
     private void CreateContentChildTypeData()
     {
