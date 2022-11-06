@@ -39,3 +39,10 @@ jobs:
 
     - name: Pack
       run: dotnet pack umbraco.sln --configuration Release --no-build --output artifacts/nupkg
+
+    - name: Upload the artifacts
+      uses: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'artifacts/nupkg'
