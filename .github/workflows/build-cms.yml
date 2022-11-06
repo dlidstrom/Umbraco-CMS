@@ -42,9 +42,21 @@ jobs:
     - name: Pack
       run: dotnet pack umbraco.sln --configuration Release --no-build --output artifacts/nupkg
 
-    - name: Upload the artifacts
-      uses: skx/github-action-publish-binaries@master
+    - name: create release
+      id: create_release
+      uses: actions/create-release@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: 'artifacts/nupkg'
+        draft: false
+        prerelease: false
+
+    - name: Upload release
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/nupkg
+        asset_name: nupkg.zip
+        asset_content_type: application/zip
