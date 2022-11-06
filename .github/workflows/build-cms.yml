@@ -1,0 +1,71 @@
+name: Build
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.100
+
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.17.0
+
+    - name: npm ci
+      working-directory: src/Umbraco.Web.UI.Client
+      run: npm ci --no-fund --no-audit --prefer-offline
+
+    - name: gulp coreBuild
+      working-directory: src/Umbraco.Web.UI.Client
+      run: npx gulp coreBuild
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore -p:ContinuousIntegrationBuild=true -p:WarningLevel=0
+
+    - name: Pack
+      run: dotnet pack umbraco.sln --configuration Release --no-build --output artifacts/nupkg
+
+    - name: Create artifact
+      run: zip --junk-paths --recurse-paths nupkg artifacts/nupkg
+
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_NAME: $(echo $GITHUB_SHA | head -c7)
+      with:
+        tag_name: ${{ steps.vars.outputs.sha_short }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./nupkg.zip
+        asset_name: nupkg.zip
+        asset_content_type: application/zip
