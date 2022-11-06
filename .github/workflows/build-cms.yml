@@ -42,7 +42,7 @@ jobs:
 
     - name: Upload the artifacts
       uses: skx/github-action-publish-binaries@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: 'artifacts/nupkg'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'artifacts/nupkg'
